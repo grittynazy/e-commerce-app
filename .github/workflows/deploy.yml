@@ -1,0 +1,56 @@
+name: Build and Deploy to Docker Hub & AWS EC2
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Log in to Docker Hub
+    - name: Docker Hub Login
+      run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+    # Build and push backend image
+    - name: Build backend image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend ./backend
+
+    - name: Push backend image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend
+
+    # Build and push frontend image
+    - name: Build frontend image
+      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend ./frontend
+
+    - name: Push frontend image
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend
+
+    # SSH into EC2 and deploy using docker-compose
+    - name: Deploy on EC2 via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.AWS_HOST }}
+        username: ${{ secrets.AWS_USERNAME }}
+        key: ${{ secrets.AWS_SSH_KEY }}
+        script: |
+          sudo apt update && sudo apt install -y docker.io docker-compose git
+          
+          # Clone your repo if not exists
+          cd ~
+            git clone https://github.com/grittynazy/e-commerce-app.git e-commerce-app
+
+          cd e-commerce-app
+          git pull
+
+          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend
+          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend
+
+          docker-compose down
+          docker-compose up -d
+
