@@ -47,10 +47,10 @@ jobs:
           cd e-commerce-app
           git pull
 
-          docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend
+          sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_PASSWORD }}
+          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-backend
+          sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/ecommerce-frontend
 
-          docker-compose down
-          docker-compose up -d
+          sudo docker-compose down
+          sudo docker-compose up -d
 
