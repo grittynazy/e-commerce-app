@@ -5,6 +5,8 @@ on:
     workflows: ["Backend CI", "Frontend CI"]  # Use the exact names of your CI workflows
     types:
       - completed
+   branches:
+      - main
 
 jobs:
   deploy:
